@@ -31,6 +31,14 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Enable CORS
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', 'http://localhost:4200');  // Allow requests from your Angular app
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS'); // Specify allowed HTTP methods
+  next();
+});
+
 // wire-up routes to controllers
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
@@ -54,6 +62,7 @@ app.use(function(err, req, res, next) {
 });
 
 module.exports = app;
+
 const port = process.env.PORT || 3000;
 
 app.listen(port, () => {

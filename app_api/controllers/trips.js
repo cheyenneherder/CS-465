@@ -31,8 +31,34 @@ const tripByCode = async (req, res) => {
     }
 };
 
-module.exports = {
-    tripsList,
-    tripByCode 
+// POST: /trips - Adds a new trip
+const tripsAddTrip = async (req, res) => {
+    console.log('POST request received at /api/trips with body:', req.body); // Log the request body
+    
+    const newTrip = new Model({
+        code: req.body.code,
+        name: req.body.name,
+        length: req.body.length,
+        start: req.body.start,
+        resort: req.body.resort,
+        perPerson: req.body.perPerson,
+        image: req.body.image,
+        description: req.body.description
+    });
+
+    try {
+        const t = await newTrip.save();
+        console.log('Trip added successfully:', t); // Log success
+        return res.status(201).json(t);  // Return the new trip
+    } catch (error) {
+        console.log('Error adding trip:', error.message); // Add this to log any errors
+        return res.status(400).json({ message: "Failed to add trip", error: error.message });
+    }
 };
 
+// Export all functions, including the new one
+module.exports = {
+    tripsList,
+    tripByCode,
+    tripsAddTrip // Added this method to export
+};
