@@ -10,9 +10,10 @@ router
   .get(tripsController.tripsList)    // GET Method - Routes tripList
   .post(tripsController.tripsAddTrip); // POST Method - Adds a Trip
 
-// GET Method - Routes trips by tripCode - requires parameter
+// GET and PUT Method - Routes trips by tripCode (GET and UPDATE/PUT)
 router
   .route('/trips/:tripCode')
-  .get(tripsController.tripByCode); // Make sure it matches the method in trips.js
+  .get(tripsController.tripByCode)    // GET Method - Retrieve trip by code
+  .put(tripsController.tripsUpdateTrip); // PUT Method - Updates an existing trip
 
 module.exports = router;

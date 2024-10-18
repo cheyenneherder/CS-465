@@ -51,8 +51,36 @@ const tripsAddTrip = async (req, res) => {
         console.log('Trip added successfully:', t); // Log success
         return res.status(201).json(t);  // Return the new trip
     } catch (error) {
-        console.log('Error adding trip:', error.message); // Add this to log any errors
+        console.log('Error adding trip:', error.message); // Log any errors
         return res.status(400).json({ message: "Failed to add trip", error: error.message });
+    }
+};
+
+// PUT: /trips/:tripCode - Updates an existing trip
+const tripsUpdateTrip = async(req, res) => {
+    console.log(req.params);
+    console.log(req.body);
+
+    const q = await Model
+        .findOneAndUpdate(
+            { 'code': req.params.tripCode },
+            {
+                code: req.body.code,
+                name: req.body.name,
+                length: req.body.length,
+                start: req.body.start,
+                resort: req.body.resort,
+                perPerson: req.body.perPerson,
+                image: req.body.image,
+                description: req.body.description
+            }
+        )
+        .exec();
+
+    if (!q) {
+        return res.status(400).json({ message: 'Failed to update trip' });
+    } else {
+        return res.status(201).json(q);
     }
 };
 
@@ -60,5 +88,6 @@ const tripsAddTrip = async (req, res) => {
 module.exports = {
     tripsList,
     tripByCode,
-    tripsAddTrip // Added this method to export
+    tripsAddTrip,
+    tripsUpdateTrip  // Added the update method to export
 };

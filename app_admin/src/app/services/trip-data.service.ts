@@ -20,4 +20,15 @@ export class TripDataService {
   addTrip(formData: Trip): Observable<Trip> {
     return this.http.post<Trip>(this.url, formData);
   }
+
+  // Method to retrieve a single trip by tripCode
+  getTrip(tripCode: string): Observable<Trip> {
+    return this.http.get<Trip>(`${this.url}/${tripCode}`);
+  }
+
+  // Method to update an existing trip by tripCode
+  updateTrip(formData: Trip): Observable<Trip> {
+    return this.http.put<Trip>(`${this.url}/${formData.code}`, formData);
+  }
 }
+
