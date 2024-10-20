@@ -1,8 +1,16 @@
-const express = require('express');  // Express app
-const router = express.Router();     // Router logic
+const express = require('express');
+const router = express.Router();
+//const expressJwt = require('express-jwt');  // Import express-jwt correctly for version 5.3.3
 
-// This is where we import the controllers we will route
 const tripsController = require('../controllers/trips');
+const authController = require('../controllers/authentication');
+
+// Add JWT authentication middleware
+//const auth = expressJwt({
+ // secret: process.env.JWT_SECRET,
+ // userProperty: 'payload',
+    
+//});
 
 // Define route for our trips endpoint
 router
@@ -14,6 +22,15 @@ router
 router
   .route('/trips/:tripCode')
   .get(tripsController.tripByCode)    // GET Method - Retrieve trip by code
-  .put(tripsController.tripsUpdateTrip); // PUT Method - Updates an existing trip
+  .put(tripsController.tripsUpdateTrip); // Only authenticated users can update trips
+
+// Define routes for authentication (login and register)
+router
+  .route('/login')
+  .post(authController.login);  // Login
+
+router
+  .route('/register')
+  .post(authController.register);  // Register a new user
 
 module.exports = router;
