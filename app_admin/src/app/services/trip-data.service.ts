@@ -1,34 +1,51 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { Trip } from '../models/trip';
+import { Inject, Injectable } from "@angular/core";
+import { HttpClient } from "@angular/common/http";  // Use HttpClient instead of Http
+import { AuthResponse } from "../models/authresponse";
+import { Observable, lastValueFrom } from "rxjs";
+import { BROWSER_STORAGE } from "../storage";
+import { Trip } from "../models/trip";
+import { User } from "../models/user";
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: "root" })
 export class TripDataService {
-  private url = 'http://localhost:3000/api/trips'; // Refactored URL variable
+  private apiBaseUrl = "http://localhost:3000/api";
+  private tripUrl = `${this.apiBaseUrl}/trips`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, @Inject(BROWSER_STORAGE) private storage: Storage) {}
 
-  // Method to retrieve trips from the backend
+  // Fetch all trips
   getTrips(): Observable<Trip[]> {
-    return this.http.get<Trip[]>(this.url);
+    return this.http.get<Trip[]>(this.tripUrl);
   }
 
-  // Method to add a new trip to the backend
+  // Fetch a trip by its code
+  getTrip(tripCode: string): Observable<Trip[]> {
+    return this.http.get<Trip[]>(`${this.tripUrl}/${tripCode}`);
+  }
+
+  // Add a new trip
   addTrip(formData: Trip): Observable<Trip> {
-    return this.http.post<Trip>(this.url, formData);
+    return this.http.post<Trip>(this.tripUrl, formData);
   }
 
-  // Method to retrieve a single trip by tripCode
-  getTrip(tripCode: string): Observable<Trip> {
-    return this.http.get<Trip>(`${this.url}/${tripCode}`);
-  }
-
-  // Method to update an existing trip by tripCode
+  // Update an existing trip
   updateTrip(formData: Trip): Observable<Trip> {
-    return this.http.put<Trip>(`${this.url}/${formData.code}`, formData);
+    return this.http.put<Trip>(this.tripUrl, formData);
+  }
+
+  // Login user
+  public login(user: User): Promise<AuthResponse> {
+    return this.makeAuthApiCall("login", user);
+  }
+
+  // Register user
+  public register(user: User): Promise<AuthResponse> {
+    return this.makeAuthApiCall("register", user);
+  }
+
+  // Helper method for authentication API calls
+  private async makeAuthApiCall<AuthResponse>(urlPath: string, user: User): Promise<AuthResponse> {
+    const url = `${this.apiBaseUrl}/${urlPath}`;
+    return (await lastValueFrom(this.http.post(url, user))) as AuthResponse;
   }
 }
-
