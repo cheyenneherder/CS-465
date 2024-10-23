@@ -1,87 +1,68 @@
-require('dotenv').config();  // Add dotenv to load environment variables
+require("dotenv").config(); // Load environment variables from .env file
 
-const createError = require('http-errors');
-const express = require('express');
-const path = require('path');
-const cookieParser = require('cookie-parser');
-const logger = require('morgan');
-const handlebars = require('hbs');
-const passport = require('passport');
+const createError = require("http-errors");
+const express = require("express");
+const path = require("path");
+const cookieParser = require("cookie-parser");
+const logger = require("morgan");
+const handlebars = require("hbs");
+const passport = require("passport");
 
-// Bring in database
-require('./app_api/models/db');
+require("./app_api/models/db"); // Connect to database
+require("./app_api/config/passport"); // Passport configuration
 
-// Initialize Passport configuration
-require('./app_api/config/passport');  
+// Import routers
+const indexRouter = require("./app_server/routes/index");
+const usersRouter = require("./app_server/routes/users");
+const travelRouter = require("./app_server/routes/travel");
+const apiRouter = require("./app_api/routes/index");
 
-// Define routers
-const indexRouter = require('./app_server/routes/index');
-const usersRouter = require('./app_server/routes/users');
-const travelRouter = require('./app_server/routes/travel');
-const apiRouter = require('./app_api/routes/index');
+const app = express(); // Initialize Express
 
+// Set up view engine
+app.set("views", path.join(__dirname, "app_server", "views"));
+handlebars.registerPartials(path.join(__dirname, "/app_server/views/partials"));
+app.set("view engine", "hbs");
 
-var app = express();
+app.use(logger("dev")); // Logging middleware
+app.use(express.json()); // Parse JSON bodies
+app.use(express.urlencoded({ extended: false })); // Parse URL-encoded bodies
+app.use(cookieParser()); // Parse cookies
+app.use(express.static(path.join(__dirname, "public"))); // Serve static files
+app.use(passport.initialize()); // Initialize Passport
 
-// view engine setup
-app.set('views', path.join(__dirname, 'app_server', 'views'));
-
-// register handlebars partials (https://www.npmjs.com/package/hbs)
-handlebars.registerPartials(__dirname + '/app_server/views/partials');
-
-app.set('view engine', 'hbs');
-
-app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(passport.initialize());
-
-// Enable CORS
-app.use('/api', (req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'http://localhost:4200');  // Allow requests from your Angular app
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE'); // Specify allowed HTTP methods
+// Enable CORS for API requests
+app.use("/api", (req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "http://localhost:4200");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
   next();
 });
 
-// wire-up routes to controllers
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
-app.use('/travel', travelRouter);
-app.use('/api', apiRouter);
+// Define routes
+app.use("/", indexRouter);
+app.use("/users", usersRouter);
+app.use("/travel", travelRouter);
+app.use("/api", apiRouter);
 
-// catch unauthorized error and create 401
-app.use((err, req, res, next) => {
-  if (err.name === 'UnauthorizedError') {
-    res
-      .status(401)
-      .json({ "message": err.name + ": " + err.message });
+// Handle unauthorized errors
+app.use((err, req, res) => {
+  if (err.name === "UnauthorizedError") {
+    res.status(401).json({ message: `${err.name}: ${err.message}` });
   }
 });
 
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
+// Handle 404 errors (not found)
+app.use((req, res, next) => {
+  console.log(`Unhandled route: ${req.method} ${req.url}`);
   next(createError(404));
 });
 
-// error handler
-app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
+// General error handler
+app.use((err, req, res) => {
   res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
+  res.locals.error = req.app.get("env") === "development" ? err : {};
+  res.status(err.status || 500).render("error");
 });
 
 module.exports = app;
-
-const port = process.env.PORT || 3000;
-
-// Start the server
-//app.listen(port, () => {
-//  console.log(`Server running on port ${port}`);
-//});
